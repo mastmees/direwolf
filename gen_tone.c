@@ -395,7 +395,7 @@ static const int gray2phase_v26[4] = {0, 1, 3, 2};
 static const int gray2phase_v27[8] = {1, 0, 2, 3, 6, 7, 5, 4};
 
 
-void tone_gen_put_bit (int chan, int dat)
+void tone_gen_put_bit (int chan, int dat, int flags)
 {
 	int a = ACHAN2ADEV(chan);	/* device for channel. */
 
@@ -463,8 +463,11 @@ void tone_gen_put_bit (int chan, int dat)
 
 	  x = (dat ^ (lfsr[chan] >> 16) ^ (lfsr[chan] >> 11)) & 1;
 	  lfsr[chan] = (lfsr[chan] << 1) | (x & 1);
-	  dat = x;
+	  if (!(flags&FLAG_UNSCRAMBLED))
+	    dat = x;
 	}
+	if (flags&FLAG_NOTRANSMIT)
+	  return;
 	  
 	do {		/* until enough audio samples for this symbol. */
 

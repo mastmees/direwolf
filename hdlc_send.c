@@ -28,9 +28,9 @@
 #include "textcolor.h"
 #include "fcs_calc.h"
 
-static void send_control (int, int);
-static void send_data (int, int);
-static void send_bit (int, int);
+static void send_control (int, int,int);
+static void send_data (int, int,int);
+static void send_bit (int, int,int);
 
 
 
@@ -38,7 +38,40 @@ static int number_of_bits_sent[MAX_CHANS];		// Count number of bits sent by "hdl
 
 
 
-
+static int bitswithstuffing(unsigned char *fbuf, int flen,int fcs)
+{
+int count=0,i,x,stuff=0;
+  while (flen--) {
+    x=*fbuf++;
+    for (i=0; i<8; i++) {
+      if (x & 1) {
+        stuff++;
+        if (stuff==5) {
+          stuff=0;
+          count++;
+        }
+      }
+      else
+        stuff=0;
+      count++;
+      x>>=1;
+    }
+  }
+  x=fcs;
+  for (i=0; i<16; i++) {
+    if (x & 1) {
+      stuff++;
+      if (stuff==5) {
+        stuff=0;
+        count++;
+      }
+    }
+    else
+      stuff=0;
+    count++;
+    x>>=1;
+  }
+}
 
 /*-------------------------------------------------------------
  *
@@ -77,7 +110,7 @@ static int number_of_bits_sent[MAX_CHANS];		// Count number of bits sent by "hdl
 
 int hdlc_send_frame (int chan, unsigned char *fbuf, int flen, int bad_fcs)
 {
-	int j, fcs;
+	int j, fcs,stuffedlen;
 	
 
 	number_of_bits_sent[chan] = 0;
@@ -89,26 +122,38 @@ int hdlc_send_frame (int chan, unsigned char *fbuf, int flen, int bad_fcs)
 	fflush (stdout);
 #endif
 
-
-	send_control (chan, 0x7e);	/* Start frame */
-	
-	for (j=0; j<flen; j++) {
-	  send_data (chan, fbuf[j]);
-	}
-
 	fcs = fcs_calc (fbuf, flen);
 
-	if (bad_fcs) {
 	  /* For testing only - Simulate a frame getting corrupted along the way. */
-	  send_data (chan, (~fcs) & 0xff);
-	  send_data (chan, ((~fcs) >> 8) & 0xff);
+	if (bad_fcs) {
+	  fcs=~fcs;
 	}
-	else {
-	  send_data (chan, fcs & 0xff);
-	  send_data (chan, (fcs >> 8) & 0xff);
+	stuffedlen=(bitswithstuffing(fbuf,flen,fcs)+7)>>3; // round up to full bytes
+	
+	// create special header for Si446x chip - a small preamble, then
+	// sync word 0x7656 followed by two byte frame length (in bytes)
+	// additionally push a constant 0x6a through scrambler to initialize it
+	// to the state that receiving side expects, without actually transmitting the
+	// bits
+	
+	send_control (chan,0xaa,FLAG_UNSCRAMBLED);
+	send_control (chan,0xaa,FLAG_UNSCRAMBLED);
+	send_control (chan,0xaa,FLAG_UNSCRAMBLED);
+	send_control (chan,0x76,FLAG_UNSCRAMBLED);
+	send_control (chan,0x56,FLAG_UNSCRAMBLED);
+	send_control (chan,(stuffedlen>>8)&0xff,FLAG_UNSCRAMBLED);
+	send_control (chan,stuffedlen&0xff,FLAG_UNSCRAMBLED);
+	send_control (chan,0x6a,FLAG_NOTRANSMIT);
+	
+	send_control (chan, 0x7e,0);	/* Start frame */
+	
+	for (j=0; j<flen; j++) {
+	  send_data (chan, fbuf[j],0);
 	}
+        send_data (chan, fcs & 0xff,0);
+        send_data (chan, (fcs >> 8) & 0xff,0);
 
-	send_control (chan, 0x7e);	/* End frame */
+	send_control (chan, 0x7e,0);	/* End frame */
 
 	return (number_of_bits_sent[chan]);
 }
@@ -159,7 +204,7 @@ int hdlc_send_flags (int chan, int nflags, int finish)
 	/* it should send a continuous stream of "flags." */
 
 	for (j=0; j<nflags; j++) {
-	  send_control (chan, 0x7e);
+	  send_control (chan, 0x7e,0);
 	}
 
 /* Push out the final partial buffer! */
@@ -178,28 +223,28 @@ static int stuff[MAX_CHANS];		// Count number of "1" bits to keep track of when 
 					// Needs to be array because we could be transmitting
 					// on multiple channels at the same time.
 
-static void send_control (int chan, int x) 
+static void send_control (int chan, int x,int flags) 
 {
 	int i;
 
 	for (i=0; i<8; i++) {
-	  send_bit (chan, x & 1);
+	  send_bit (chan, x & 1,flags);
 	  x >>= 1;
 	}
 	
 	stuff[chan] = 0;
 }
 
-static void send_data (int chan, int x) 
+static void send_data (int chan, int x,int flags) 
 {
 	int i;
 
 	for (i=0; i<8; i++) {
-	  send_bit (chan, x & 1);
+	  send_bit (chan, x & 1,flags);
 	  if (x & 1) {
 	    stuff[chan]++;
 	    if (stuff[chan] == 5) {
-	      send_bit (chan, 0);
+	      send_bit (chan, 0,flags);
 	      stuff[chan] = 0;
 	    }
 	  } else {
@@ -215,7 +260,7 @@ static void send_data (int chan, int x)
  * data 0 bit -> invert signal.
  */
 
-static void send_bit (int chan, int b)
+static void send_bit (int chan, int b,int flags)
 {
 	static int output[MAX_CHANS];
 
@@ -223,7 +268,7 @@ static void send_bit (int chan, int b)
 	  output[chan] = ! output[chan];
 	}
 
-	tone_gen_put_bit (chan, output[chan]);
+	tone_gen_put_bit (chan, output[chan],flags);
 
 	number_of_bits_sent[chan]++;
 }

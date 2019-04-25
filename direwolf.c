@@ -771,7 +771,7 @@ int main (int argc, char *argv[])
 	  ptt_set (OCTYPE_PTT, chan, 1);
 	  while (n-- > 0) {
 
-	    tone_gen_put_bit (chan, n & 1);
+	    tone_gen_put_bit (chan, n & 1,0);
 
 	  }
 	  ptt_set (OCTYPE_PTT, chan, 0);

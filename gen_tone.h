@@ -12,6 +12,9 @@ int gen_tone_init (struct audio_s *pp, int amp, int gen_packets);
 
 //int gen_tone_close (void);
 
-void tone_gen_put_bit (int chan, int dat);
+#define FLAG_UNSCRAMBLED 1
+#define FLAG_NOTRANSMIT 2
+
+void tone_gen_put_bit (int chan, int dat, int flags);
 
 void gen_tone_put_sample (int chan, int a, int sam);

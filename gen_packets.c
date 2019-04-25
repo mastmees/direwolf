@@ -489,72 +489,72 @@ int main(int argc, char **argv)
 
 	  // 6 cycles of 1800 Hz.
 	  for (n=0; n<8; n++) {
-	    tone_gen_put_bit (chan, 0);
+	    tone_gen_put_bit (chan, 0,0);
 	  }
 
 	  // Shift 90
-	  tone_gen_put_bit (chan, 0);
-	  tone_gen_put_bit (chan, 1);
+	  tone_gen_put_bit (chan, 0,0);
+	  tone_gen_put_bit (chan, 1,0);
 
 	  // Shift 90
-	  tone_gen_put_bit (chan, 0);
-	  tone_gen_put_bit (chan, 1);
+	  tone_gen_put_bit (chan, 0,0);
+	  tone_gen_put_bit (chan, 1,0);
 
 	  // Shift 90
-	  tone_gen_put_bit (chan, 0);
-	  tone_gen_put_bit (chan, 1);
+	  tone_gen_put_bit (chan, 0,0);
+	  tone_gen_put_bit (chan, 1,0);
 
 	  // Shift 90
-	  tone_gen_put_bit (chan, 0);
-	  tone_gen_put_bit (chan, 1);
+	  tone_gen_put_bit (chan, 0,0);
+	  tone_gen_put_bit (chan, 1,0);
 
 	  // Shift 180
-	  tone_gen_put_bit (chan, 1);
-	  tone_gen_put_bit (chan, 1);
+	  tone_gen_put_bit (chan, 1,0);
+	  tone_gen_put_bit (chan, 1,0);
 
 	  // Shift 270
-	  tone_gen_put_bit (chan, 1);
-	  tone_gen_put_bit (chan, 0);
+	  tone_gen_put_bit (chan, 1,0);
+	  tone_gen_put_bit (chan, 0,0);
 
 	  // Shift 0
-	  tone_gen_put_bit (chan, 0);
-	  tone_gen_put_bit (chan, 0);
+	  tone_gen_put_bit (chan, 0,0);
+	  tone_gen_put_bit (chan, 0,0);
 
 	  // Shift 0
-	  tone_gen_put_bit (chan, 0);
-	  tone_gen_put_bit (chan, 0);
+	  tone_gen_put_bit (chan, 0,0);
+	  tone_gen_put_bit (chan, 0,0);
 
 
 	  // HDLC flag - six 1 in a row.
-	  tone_gen_put_bit (chan, 0);
-	  tone_gen_put_bit (chan, 1);
-	  tone_gen_put_bit (chan, 1);
-	  tone_gen_put_bit (chan, 1);
-	  tone_gen_put_bit (chan, 1);
-	  tone_gen_put_bit (chan, 1);
-	  tone_gen_put_bit (chan, 1);
-	  tone_gen_put_bit (chan, 0);
+	  tone_gen_put_bit (chan, 0,0);
+	  tone_gen_put_bit (chan, 1,0);
+	  tone_gen_put_bit (chan, 1,0);
+	  tone_gen_put_bit (chan, 1,0);
+	  tone_gen_put_bit (chan, 1,0);
+	  tone_gen_put_bit (chan, 1,0);
+	  tone_gen_put_bit (chan, 1,0);
+	  tone_gen_put_bit (chan, 0,0);
 
-	  tone_gen_put_bit (chan, 0);	// reverse even/odd position
+	  tone_gen_put_bit (chan, 0,0);	// reverse even/odd position
 
-	  tone_gen_put_bit (chan, 0);
-	  tone_gen_put_bit (chan, 1);
-	  tone_gen_put_bit (chan, 1);
-	  tone_gen_put_bit (chan, 1);
-	  tone_gen_put_bit (chan, 1);
-	  tone_gen_put_bit (chan, 1);
-	  tone_gen_put_bit (chan, 1);
-	  tone_gen_put_bit (chan, 0);
+	  tone_gen_put_bit (chan, 0,0);
+	  tone_gen_put_bit (chan, 1,0);
+	  tone_gen_put_bit (chan, 1,0);
+	  tone_gen_put_bit (chan, 1,0);
+	  tone_gen_put_bit (chan, 1,0);
+	  tone_gen_put_bit (chan, 1,0);
+	  tone_gen_put_bit (chan, 1,0);
+	  tone_gen_put_bit (chan, 0,0);
 
-	  tone_gen_put_bit (chan, 0);
-
-	  // Shift 0
-	  tone_gen_put_bit (chan, 0);
-	  tone_gen_put_bit (chan, 0);
+	  tone_gen_put_bit (chan, 0,0);
 
 	  // Shift 0
-	  tone_gen_put_bit (chan, 0);
-	  tone_gen_put_bit (chan, 0);
+	  tone_gen_put_bit (chan, 0,0);
+	  tone_gen_put_bit (chan, 0,0);
+
+	  // Shift 0
+	  tone_gen_put_bit (chan, 0,0);
+	  tone_gen_put_bit (chan, 0,0);
 
 	  audio_file_close ();
 	  return (EXIT_SUCCESS);
