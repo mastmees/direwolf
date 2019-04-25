@@ -129,7 +129,7 @@ int hdlc_send_frame (int chan, unsigned char *fbuf, int flen, int bad_fcs)
 	if (bad_fcs) {
 	  fcs=~fcs;
 	}
-	stuffedlen=(bitswithstuffing(fbuf,flen,fcs)+7)>>3; // round up to full bytes
+	stuffedlen=(bitswithstuffing(fbuf,flen,fcs)+7+16)>>3; // add 16 bits for flags and round up to full bytes
 	
 	// create special header for Si446x chip - a small preamble, then
 	// sync word 0x7656 followed by two byte frame length (in bytes)
