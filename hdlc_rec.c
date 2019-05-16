@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "demod.h"
 #include "hdlc_rec.h"
@@ -114,7 +115,6 @@ static int num_subchan[MAX_CHANS];		//TODO1.2 use ptr rather than copy.
 
 static int composite_dcd[MAX_CHANS][MAX_SUBCHANS+1];
 
-
 /***********************************************************************************
  *
  * Name:	hdlc_rec_init
@@ -196,6 +196,8 @@ void hdlc_rec_init (struct audio_s *pa)
  *
  ***********************************************************************************/
 
+
+
 // TODO: int not_used_remove
 
 void hdlc_rec_bit (int chan, int subchan, int slice, int raw, int is_scrambled, int not_used_remove)
@@ -204,7 +206,8 @@ void hdlc_rec_bit (int chan, int subchan, int slice, int raw, int is_scrambled, 
 	int dbit;			/* Data bit after undoing NRZI. */
 					/* Should be only 0 or 1. */
 	struct hdlc_state_s *H;
-
+	static int rawpattern=0,showcount=0;
+	
 	assert (was_init == 1);
 
 	assert (chan >= 0 && chan < MAX_CHANS);
@@ -223,6 +226,7 @@ void hdlc_rec_bit (int chan, int subchan, int slice, int raw, int is_scrambled, 
  *   A '1' bit is represented by no change.
  */
 
+
 	if (is_scrambled) {
 	  int descram;
 
@@ -230,7 +234,8 @@ void hdlc_rec_bit (int chan, int subchan, int slice, int raw, int is_scrambled, 
 
 	  dbit = (descram == H->prev_descram);
 	  H->prev_descram = descram;			
-	  H->prev_raw = raw;	}
+	  H->prev_raw = raw;	
+        }
 	else {
 
 	  dbit = (raw == H->prev_raw);
@@ -250,6 +255,7 @@ void hdlc_rec_bit (int chan, int subchan, int slice, int raw, int is_scrambled, 
 	if (dbit) {
 	  H->flag4_det |= 0x80000000;
 	}
+
 
 
 /*
@@ -340,7 +346,8 @@ void hdlc_rec_bit (int chan, int subchan, int slice, int raw, int is_scrambled, 
 
 
 	rrbb_append_bit (H->rrbb, raw);
-
+	//H->rrbb->ddata[H->rrbb->len-1]=dbit;
+	
 	if (H->pat_det == 0x7e) {
 
 	  rrbb_chop8 (H->rrbb);
@@ -355,72 +362,27 @@ void hdlc_rec_bit (int chan, int subchan, int slice, int raw, int is_scrambled, 
  * "flag" pattern before it is detected here.
  */
 
-
-#if OLD_WAY
-
-#if TEST
-	  text_color_set(DW_COLOR_DEBUG);
-	  dw_printf ("\nfound flag, olen = %d, frame_len = %d\n", olen, frame_len);
-#endif
-	  if (H->olen == 7 && H->frame_len >= MIN_FRAME_LEN) {
-
-	    unsigned short actual_fcs, expected_fcs;
-
-#if TEST
-	    int j;
-	    dw_printf ("TRADITIONAL: frame len = %d\n", H->frame_len);
-	    for (j=0; j<H->frame_len; j++) {
-	      dw_printf ("  %02x", H->frame_buf[j]);
-	    }
-	    dw_printf ("\n");
-
-#endif
-	    /* Check FCS, low byte first, and process... */
-
-	    /* Alternatively, it is possible to include the two FCS bytes */
-	    /* in the CRC calculation and look for a magic constant.  */
-	    /* That would be easier in the case where the CRC is being */
-	    /* accumulated along the way as the octets are received. */
-	    /* I think making a second pass over it and comparing is */
-	    /* easier to understand. */
-
-	    actual_fcs = H->frame_buf[H->frame_len-2] | (H->frame_buf[H->frame_len-1] << 8);
-
-	    expected_fcs = fcs_calc (H->frame_buf, H->frame_len - 2);
-
-	    if (actual_fcs == expected_fcs) {
-	      alevel_t alevel = demod_get_audio_level (chan, subchan);
-
-	      multi_modem_process_rec_frame (chan, subchan, slice, H->frame_buf, H->frame_len - 2, alevel, RETRY_NONE);   /* len-2 to remove FCS. */
-	    }
-	    else {
-
-#if TEST
-	      dw_printf ("*** actual fcs = %04x, expected fcs = %04x ***\n", actual_fcs, expected_fcs);
-#endif
-
-	    }
-
-	  }
-
-#else
-
 /*
  * New way - Decode the raw bits in later step.
  */
 
-#if TEST
-	  text_color_set(DW_COLOR_DEBUG);
-	  dw_printf ("\nfound flag, channel %d.%d, %d bits in frame\n", chan, subchan, rrbb_get_len(H->rrbb) - 1);
-#endif
 	  if (rrbb_get_len(H->rrbb) >= MIN_FRAME_LEN * 8) {
 		
+#if TEST
+//	    printf ("\nfound flag, channel %d.%d, %d bits in frame\n", chan, subchan, rrbb_get_len(H->rrbb) - 1);
+#endif
 	    alevel_t alevel = demod_get_audio_level (chan, subchan);
 
 	    rrbb_set_audio_level (H->rrbb, alevel);
-	    hdlc_rec2_block (H->rrbb);
+	    //int l=rrbb_get_len(H->rrbb);
+	    if (hdlc_rec2_block (H->rrbb)) {
 	    	/* Now owned by someone else who will free it. */
-
+              //for (int i=0;i<l;i++)
+              //{
+              //  putchar(H->rrbb->ddata[i]+'0');
+              //}
+              //printf("\n");
+            }
 	    H->rrbb = rrbb_new (chan, subchan, slice, is_scrambled, H->lfsr, H->prev_descram); /* Allocate a new one. */
 	  }
 	  else {
@@ -435,7 +397,6 @@ void hdlc_rec_bit (int chan, int subchan, int slice, int raw, int is_scrambled, 
 						/* Now that we are saving other initial state information, */
 						/* it would be sensible to do the same for this instead */
 						/* of lumping it in with the frame data bits. */
-#endif
 
 	}
 
