@@ -39,7 +39,7 @@ typedef struct rrbb_s {
 	int descram_state;	/* Descrambler state before first data bit of frame. */
 	int prev_descram;	/* Previous descrambled bit. */
 
-	unsigned char fdata[MAX_NUM_BITS];
+	unsigned char fdata[MAX_NUM_BITS],ddata[MAX_NUM_BITS];
 
 	int magic2;
 } *rrbb_t;
