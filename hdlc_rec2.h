@@ -56,7 +56,7 @@ static const char * retry_text[] = {
 
 void hdlc_rec2_init (struct audio_s *audio_config_p);
 
-void hdlc_rec2_block (rrbb_t block);
+int hdlc_rec2_block (rrbb_t block);
 
 int hdlc_rec2_try_to_fix_later (rrbb_t block, int chan, int subchan, int slice, alevel_t alevel);
 
