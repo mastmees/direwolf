@@ -77,6 +77,7 @@
 #include "dlq.h"
 
 
+#define DEBUG 0
 
 /*
  * Parameters for transmission.
@@ -424,7 +425,7 @@ typedef enum flavor_e { FLAVOR_APRS_NEW, FLAVOR_APRS_DIGI, FLAVOR_SPEECH, FLAVOR
 
 static flavor_t frame_flavor (packet_t pp)
 {
-
+/*
 	if (ax25_is_aprs (pp)) { 	// UI frame, PID 0xF0.
 					// It's unfortunate APRS did not use its own special PID.
 
@@ -444,8 +445,8 @@ static flavor_t frame_flavor (packet_t pp)
 	   return (FLAVOR_DTMF);
 	  }
 
-	  /* Is there at least one digipeater AND has first one been used? */
-	  /* I could be the first in the list or later.  Doesn't matter. */
+	  // Is there at least one digipeater AND has first one been used? 
+	  // I could be the first in the list or later.  Doesn't matter. 
 
 	  if (ax25_get_num_repeaters(pp) >= 1 && ax25_get_h(pp,AX25_REPEATER_1)) {
 	    return (FLAVOR_APRS_DIGI);
@@ -453,7 +454,7 @@ static flavor_t frame_flavor (packet_t pp)
 
 	  return (FLAVOR_APRS_NEW);
 	}
-
+*/
 	return (FLAVOR_OTHER);
 
 } /* end frame_flavor */
@@ -522,7 +523,7 @@ static void * xmit_thread (void *arg)
 	  tq_wait_while_empty (chan);
 #if DEBUG
 	  text_color_set(DW_COLOR_DEBUG);
-	  dw_printf ("xmit_thread, channel %d: woke up\n", c);
+	  dw_printf ("xmit_thread, channel %d: woke up\n", chan);
 #endif
 
 	  // Does this extra loop offer any benefit?
@@ -762,6 +763,7 @@ static void xmit_ax25_frames (int chan, int prio, packet_t pp, int max_bundle)
 					// machine, that the transmission opportunity has arrived."
 
 	pre_flags = MS_TO_BITS(xmit_txdelay[chan] * 10, chan) / 8;
+	
 	num_bits =  hdlc_send_flags (chan, pre_flags, 0);
 #if DEBUG
 	text_color_set(DW_COLOR_DEBUG);
@@ -784,7 +786,7 @@ static void xmit_ax25_frames (int chan, int prio, packet_t pp, int max_bundle)
 	if (nb > 0) numframe++;
 #if DEBUG
 	text_color_set(DW_COLOR_DEBUG);
-	dw_printf ("xmit_thread: flen=%d, nb=%d, num_bits=%d, numframe=%d\n", flen, nb, num_bits, numframe);
+	dw_printf ("xmit_thread: nb=%d, num_bits=%d, numframe=%d\n", nb, num_bits, numframe);
 #endif
 	ax25_delete (pp);
 
@@ -835,7 +837,7 @@ static void xmit_ax25_frames (int chan, int prio, packet_t pp, int max_bundle)
 	        if (nb > 0) numframe++;
 #if DEBUG
 	        text_color_set(DW_COLOR_DEBUG);
-	        dw_printf ("xmit_thread: flen=%d, nb=%d, num_bits=%d, numframe=%d\n", flen, nb, num_bits, numframe);
+	        dw_printf ("xmit_thread: nb=%d, num_bits=%d, numframe=%d\n", nb, num_bits, numframe);
 #endif
 	        ax25_delete (pp);
 
