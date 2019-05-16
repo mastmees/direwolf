@@ -109,6 +109,16 @@ int count=0,i,x,stuff=0;
  *
  *--------------------------------------------------------------*/
 
+#include <stdint.h>
+
+uint8_t flip(uint8_t b)
+{
+    b = (b&0xF0) >> 4 | (b&0x0F) << 4;
+    b = (b&0xCC) >> 2 | (b&0x33) << 2;
+    b = (b&0xAA) >> 1 | (b&0x55) << 1;
+    return b;
+}
+
 int hdlc_send_frame (int chan, unsigned char *fbuf, int flen, int bad_fcs)
 {
 	int j, fcs,stuffedlen;
@@ -129,7 +139,11 @@ int hdlc_send_frame (int chan, unsigned char *fbuf, int flen, int bad_fcs)
 	if (bad_fcs) {
 	  fcs=~fcs;
 	}
-	stuffedlen=(bitswithstuffing(fbuf,flen,fcs)+7+16)>>3; // add 16 bits for flags and round up to full bytes
+	stuffedlen=(bitswithstuffing(fbuf,flen,fcs)+7+16+24)>>3; // add 16 bits for flags and round up to full bytes
+	                                                         // also add 24 additional bits for extra flag bytes
+	                                                         // to get the descrambler in sync
+
+//	dw_printf ("bitstuffed length with extra start and end bytes is %d (0x%x)\n",stuffedlen,stuffedlen);
 	
 	// create special header for Si446x chip - a small preamble, then
 	// sync word 0x7656 followed by two byte frame length (in bytes)
@@ -137,15 +151,22 @@ int hdlc_send_frame (int chan, unsigned char *fbuf, int flen, int bad_fcs)
 	// to the state that receiving side expects, without actually transmitting the
 	// bits
 	
-	send_control (chan,0xaa,FLAG_UNSCRAMBLED);
-	send_control (chan,0xaa,FLAG_UNSCRAMBLED);
-	send_control (chan,0xaa,FLAG_UNSCRAMBLED);
-	send_control (chan,0x76,FLAG_UNSCRAMBLED);
-	send_control (chan,0x56,FLAG_UNSCRAMBLED);
-	send_control (chan,(stuffedlen>>8)&0xff,FLAG_UNSCRAMBLED);
-	send_control (chan,stuffedlen&0xff,FLAG_UNSCRAMBLED);
-	send_control (chan,0x6a,FLAG_NOTRANSMIT);
+	send_control (chan,0xaa,FLAG_UNSCRAMBLED|FLAG_NONRZI);
+	send_control (chan,0xaa,FLAG_UNSCRAMBLED|FLAG_NONRZI);
+	send_control (chan,0xaa,FLAG_UNSCRAMBLED|FLAG_NONRZI);
+	send_control (chan,0xaa,FLAG_UNSCRAMBLED|FLAG_NONRZI);
+	send_control (chan,0xaa,FLAG_UNSCRAMBLED|FLAG_NONRZI);
+	send_control (chan,0xaa,FLAG_UNSCRAMBLED|FLAG_NONRZI);
+	send_control (chan,0xaa,FLAG_UNSCRAMBLED|FLAG_NONRZI);
+	send_control (chan,0xaa,FLAG_UNSCRAMBLED|FLAG_NONRZI);
+	send_control (chan,~0x7c,FLAG_UNSCRAMBLED|FLAG_NONRZI); // 0x3e
+	send_control (chan,~0x56,FLAG_UNSCRAMBLED|FLAG_NONRZI); // 0x6a
+	send_control (chan,~flip((stuffedlen>>8)&0xff),FLAG_UNSCRAMBLED|FLAG_NONRZI);
+	send_control (chan,~flip((stuffedlen&0xff)),FLAG_UNSCRAMBLED|FLAG_NONRZI);
 	
+	send_control (chan, 0x7e,0);	/* Start frame */
+	send_control (chan, 0x7e,0);	/* Start frame */
+	send_control (chan, 0x7e,0);	/* Start frame */
 	send_control (chan, 0x7e,0);	/* Start frame */
 	
 	for (j=0; j<flen; j++) {
@@ -155,7 +176,9 @@ int hdlc_send_frame (int chan, unsigned char *fbuf, int flen, int bad_fcs)
         send_data (chan, (fcs >> 8) & 0xff,0);
 
 	send_control (chan, 0x7e,0);	/* End frame */
+	send_control (chan,0x7e,0);
 
+	printf("\n");
 	return (number_of_bits_sent[chan]);
 }
 
@@ -232,7 +255,7 @@ static void send_control (int chan, int x,int flags)
 	  send_bit (chan, x & 1,flags);
 	  x >>= 1;
 	}
-	
+	//putchar(' ');
 	stuff[chan] = 0;
 }
 
@@ -253,6 +276,7 @@ static void send_data (int chan, int x,int flags)
           }
 	  x >>= 1;
 	}
+	//putchar(' ');
 }
 
 /*
@@ -265,10 +289,16 @@ static void send_bit (int chan, int b,int flags)
 {
 	static int output[MAX_CHANS];
 
-	if (b == 0) {
-	  output[chan] = ! output[chan];
+	if (flags&FLAG_NONRZI) {
+	  output[chan]=b;
 	}
+	else {
+	  if (b == 0) {
+	    output[chan] = ! output[chan];
+	  }
+        }
 
+        //putchar(output[chan]+'0');
 	tone_gen_put_bit (chan, output[chan],flags);
 
 	number_of_bits_sent[chan]++;
