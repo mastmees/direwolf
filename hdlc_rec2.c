@@ -226,7 +226,7 @@ void hdlc_rec2_init (struct audio_s *p_audio_config)
  ***********************************************************************************/
 
 
-void hdlc_rec2_block (rrbb_t block)
+int hdlc_rec2_block (rrbb_t block)
 {
 	int chan = rrbb_get_chan(block);
 	int subchan = rrbb_get_subchan(block);
@@ -264,7 +264,7 @@ void hdlc_rec2_block (rrbb_t block)
 	  dw_printf ("Got it the first time.\n");
 #endif
 	 rrbb_delete (block);
-	 return;
+	 return 1;
 	}
 
 /*
@@ -273,9 +273,9 @@ void hdlc_rec2_block (rrbb_t block)
  */
 	if (try_to_fix_quick_now (block, chan, subchan, slice, alevel)) {
 	  rrbb_delete (block);
-	  return;
+	  return 1;
 	}
-
+    ok=0;
 
 	if (passall) {
 	  /* Exhausted all desired fix up attempts. */
@@ -287,7 +287,7 @@ void hdlc_rec2_block (rrbb_t block)
 	else {  
 	  rrbb_delete (block); 
 	}
-
+	return ok;
 } /* end hdlc_rec2_block */
 
 
