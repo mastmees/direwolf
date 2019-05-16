@@ -1082,7 +1082,7 @@ void app_process_rec_packet (int chan, int subchan, int slice, packet_t pp, alev
  * Suppress printed decoding if "-q d" option used.
  */
 
-	if (ax25_is_aprs(pp)) {
+/*	if (ax25_is_aprs(pp)) {
 
 	  decode_aprs_t A;
 
@@ -1098,10 +1098,10 @@ void app_process_rec_packet (int chan, int subchan, int slice, packet_t pp, alev
 	    decode_aprs_print (&A);
 	  }
 
-	  /*
-	   * Perform validity check on each address.
-	   * This should print an error message if any issues.
-	   */
+	  //
+	 // Perform validity check on each address.
+	   // This should print an error message if any issues.
+	   ///
 	  (void)ax25_check_addresses(pp);
 
 	  // Send to log file.
@@ -1126,6 +1126,7 @@ void app_process_rec_packet (int chan, int subchan, int slice, packet_t pp, alev
 	  }
 	}
 
+*/
 
 /* Send to another application if connected. */
 // TODO:  Put a wrapper around this so we only call one function to send by all methods.
