@@ -151,14 +151,14 @@ int hdlc_send_frame (int chan, unsigned char *fbuf, int flen, int bad_fcs)
 	// to the state that receiving side expects, without actually transmitting the
 	// bits
 	
-	send_control (chan,0xaa,FLAG_UNSCRAMBLED|FLAG_NONRZI);
-	send_control (chan,0xaa,FLAG_UNSCRAMBLED|FLAG_NONRZI);
-	send_control (chan,0xaa,FLAG_UNSCRAMBLED|FLAG_NONRZI);
-	send_control (chan,0xaa,FLAG_UNSCRAMBLED|FLAG_NONRZI);
-	send_control (chan,0xaa,FLAG_UNSCRAMBLED|FLAG_NONRZI);
-	send_control (chan,0xaa,FLAG_UNSCRAMBLED|FLAG_NONRZI);
-	send_control (chan,0xaa,FLAG_UNSCRAMBLED|FLAG_NONRZI);
-	send_control (chan,0xaa,FLAG_UNSCRAMBLED|FLAG_NONRZI);
+	send_control (chan,~0x55,FLAG_UNSCRAMBLED|FLAG_NONRZI);
+	send_control (chan,~0x55,FLAG_UNSCRAMBLED|FLAG_NONRZI);
+	send_control (chan,~0x55,FLAG_UNSCRAMBLED|FLAG_NONRZI);
+	send_control (chan,~0x55,FLAG_UNSCRAMBLED|FLAG_NONRZI);
+	send_control (chan,~0x55,FLAG_UNSCRAMBLED|FLAG_NONRZI);
+	send_control (chan,~0x55,FLAG_UNSCRAMBLED|FLAG_NONRZI);
+	send_control (chan,~0x55,FLAG_UNSCRAMBLED|FLAG_NONRZI);
+	send_control (chan,~0x55,FLAG_UNSCRAMBLED|FLAG_NONRZI);
 	send_control (chan,~0x7c,FLAG_UNSCRAMBLED|FLAG_NONRZI); // 0x3e
 	send_control (chan,~0x56,FLAG_UNSCRAMBLED|FLAG_NONRZI); // 0x6a
 	send_control (chan,~flip((stuffedlen>>8)&0xff),FLAG_UNSCRAMBLED|FLAG_NONRZI);
