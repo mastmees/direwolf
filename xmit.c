@@ -1440,6 +1440,8 @@ start_over_again:
  * Wait random time.
  * Proceed to transmit sooner if anything shows up in high priority queue.
  */
+ 
+ /*
 	while (tq_peek(chan, TQ_PRIO_0_HI) == NULL) {
 	  int r;
 
@@ -1454,7 +1456,10 @@ start_over_again:
 	    break;
  	  }	
 	}
-	}
+*/
+      }
+
+
 
 /*
  * This is to prevent two channels from transmitting at the same time

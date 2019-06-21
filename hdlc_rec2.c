@@ -678,8 +678,8 @@ static int try_decode (rrbb_t block, int chan, int subchan, int slice, alevel_t 
 	      /* Valid data will never have 7 one bits in a row: exit. */
 	      if (H.pat_det == 0xfe) {
 #if DEBUGx
-	        text_color_set(DW_COLOR_DEBUG);
-	        dw_printf ("try_decode: found abort, i=%d\n", i);
+//	        text_color_set(DW_COLOR_DEBUG);
+//	        dw_printf ("try_decode: found abort, i=%d\n", i);
 #endif
 	        return 0;
 	      }
@@ -690,8 +690,8 @@ static int try_decode (rrbb_t block, int chan, int subchan, int slice, alevel_t 
 	      /* The special pattern 01111110 indicates beginning and ending of a frame: exit. */
 	      if (H.pat_det == 0x7e) {
 #if DEBUGx
-	        text_color_set(DW_COLOR_DEBUG);
-	        dw_printf ("try_decode: found flag, i=%d\n", i);
+//	        text_color_set(DW_COLOR_DEBUG);
+//	        dw_printf ("try_decode: found flag, i=%d\n", i);
 #endif
 	      return 0;
 /*
@@ -731,8 +731,8 @@ static int try_decode (rrbb_t block, int chan, int subchan, int slice, alevel_t 
  */
 
 #if DEBUGx
-	text_color_set(DW_COLOR_DEBUG);
-	dw_printf ("try_decode: olen=%d, frame_len=%d\n", H.olen, H.frame_len);
+//	text_color_set(DW_COLOR_DEBUG);
+//	dw_printf ("try_decode: olen=%d, frame_len=%d\n", H.olen, H.frame_len);
 #endif
 
 	if (H.olen == 0 && H.frame_len >= MIN_FRAME_LEN) {

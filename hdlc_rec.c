@@ -46,7 +46,7 @@
 #include "ptt.h"
 
 
-//#define TEST 1				/* Define for unit testing. */
+#define TEST 1				/* Define for unit testing. */
 
 
 //#define DEBUG3 1				/* monitor the data detect signal. */

@@ -96,7 +96,6 @@
 
 #include "direwolf.h"		// Sets _WIN32_WINNT for XP API level needed by ws2tcpip.h
 
-
 #if __WIN32__
 #include <winsock2.h>
 #include <ws2tcpip.h>  		// _WIN32_WINNT must be set to 0x0501 before including this
@@ -408,7 +407,9 @@ static THREAD_F connect_listen_thread (void *arg)
               WSACleanup();
               return (0);
             }
-
+	    int flag = 1;
+	    setsockopt (client_sock[client], IPPROTO_TCP, TCP_NODELAY, (void*)(long)(&flag), (socklen_t)sizeof(flag));
+	  
 	    text_color_set(DW_COLOR_INFO);
 	    dw_printf("\nAttached to KISS TCP client application %d ...\n\n", client);
 
@@ -692,17 +693,17 @@ static int kiss_get (int client)
 
 	  if (n == 1) {
 #if DEBUG9
-	    dw_printf (log_fp, "%02x %c %c", ch, 
+	    dw_printf ("%02x %c %c", ch, 
 			isprint(ch) ? ch : '.' , 
 			(isupper(ch>>1) || isdigit(ch>>1) || (ch>>1) == ' ') ? (ch>>1) : '.');
-	    if (ch == FEND) fprintf (log_fp, "  FEND");
-	    if (ch == FESC) fprintf (log_fp, "  FESC");
-	    if (ch == TFEND) fprintf (log_fp, "  TFEND");
-	    if (ch == TFESC) fprintf (log_fp, "  TFESC");
-	    if (ch == '\r') fprintf (log_fp, "  CR");
-	    if (ch == '\n') fprintf (log_fp, "  LF");
-	    fprintf (log_fp, "\n");
-	    if (ch == FEND) fflush (log_fp);
+	    if (ch == FEND) dw_printf ( "  FEND");
+	    if (ch == FESC) dw_printf ( "  FESC");
+	    if (ch == TFEND) dw_printf ( "  TFEND");
+	    if (ch == TFESC) dw_printf ( "  TFESC");
+	    if (ch == '\r') dw_printf ( "  CR");
+	    if (ch == '\n') dw_printf ( "  LF");
+	    dw_printf ( "\n");
+	    /* if (ch == FEND) fflush (log_fp); */
 #endif
 	    return(ch);	
 	  }
